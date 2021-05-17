@@ -1,14 +1,14 @@
 <? if ($USER->IsAuthorized()): ?>
-    авторизованный пользователь...
+    <span>авторизованный пользователь...</span>
 <? else: ?>
-    не авторизованный посетитель...
+    <span>не авторизованный посетитель...</span>
 <? endif ?>
 
 <? if (!$USER->IsAdmin()): ?>
     <span>Вы не админ!</span>
 <? endif ?>
 
-// лого без ссылки на главной
+<?php// лого без ссылки на главной?>
 <? $isIndex = ($APPLICATION->GetCurPage(false) == SITE_DIR) ?>
 <? if (!$isIndex): ?>
     <a href="/">
@@ -19,17 +19,17 @@
 <? endif ?>
 
 
-// Вывод свойства типа HTML5/текст
+<?php// Вывод свойства типа HTML5/текст?>
 <? if ($arItem["DISPLAY_PROPERTIES"]['свойство']) { ?>
     <?= htmlspecialcharsBack($arItem["PROPERTIES"]["свойство"]["VALUE"]["TEXT"]) ?>
 <? } ?>
 
-// Вывод свойства типа строка
+<?php// Вывод свойства типа строка?>
 <? if ($arItem["DISPLAY_PROPERTIES"]['свойство']) { ?>
     <? print_r($arItem["DISPLAY_PROPERTIES"]["свойство"]["VALUE"]); ?>
 <? } ?>
 
-// Вывод свойства типа файл
+<?php// Вывод свойства типа файл?>
 <? echo $arItem["DISPLAY_PROPERTIES"]["ZNAK"]["FILE_VALUE"]["SRC"] ?>
 
 // множественное свойство типа строка
