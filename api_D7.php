@@ -51,3 +51,66 @@ foreach ($csv as $item) {
          */
     }
 }
+
+
+// 3. Задача: выбрать ошибочные торговые предложения с незаполненными свойствами-связками
+//            и проставить любое свойство, например SIZE или деактивировать ТП
+//            такое часто бывает при корявом парсинге товаров
+$elements = [];
+$props = [];
+$IBLOCK_ID = 18; // ID каталога товаров (можно не указывать)
+
+$arSort = array();
+$arFilter = array("IBLOCK_ID" => $IBLOCK_ID);
+$arGroupBy = false;
+$arSelect = array("ID", "IBLOCK_ID", "CODE", "NAME", "DETAIL_PAGE_URL");
+$res = CIBlockElement::GetList($arSort, $arFilter, $arGroupBy, false, $arSelect);
+while ($arFields = $res->GetNext()) {
+    $elements[] = $arFields;
+}
+
+$productID = array_column($elements, 'ID');
+
+$arSKU = CCatalogSKU::getOffersList(
+    $productID,
+    $IBLOCK_ID,
+    array(
+        'ACTIVE' => 'Y',
+        'PROPERTY_SIZES' => false,
+        'PROPERTY_COLOR_REF' => false,
+        'PROPERTY_VOLUME' => false,
+        'PROPERTY_TOLSCHINA_METALLA' => false,
+        'PROPERTY_TOLSCHINA_LISTA' => false,
+        'PROPERTY_VYSOTA' => false,
+    ),
+    array('ID', 'NAME', 'CODE'),
+    array("CODE" => array('SIZES', 'COLOR_REF', 'VOLUME', 'TOLSCHINA_METALLA', 'TOLSCHINA_LISTA', 'VYSOTA'))
+);
+$i = 1;
+foreach ($elements as $key => $element):
+    $arSKUforID = CCatalogSKU::getOffersList(
+        $element['ID'],
+        0,
+        array('ACTIVE' => 'Y'),
+        array('ID', 'NAME', 'CODE'),
+        array()
+    );
+
+    if ($arSKU[$element['ID']] && (count($arSKUforID[$element['ID']]) == 1) ): // тут выбираем товары с одним ТП / ошибочные ?>
+        <span><?= $i++ ?>.</span> <a target="_blank" href="<?= $element['DETAIL_PAGE_URL'] ?>"><?= $element['NAME'] ?> Кол-во: <?=count($arSKUforID[$element['ID']]) ?></a><br>
+        <?
+        foreach ($arSKU[$element['ID']] as $offer):
+            // изменяет только одно свойство, не затрагивая остальные
+            CIBlockElement::SetPropertyValueCode(
+                $offer['ID'],
+                "SIZES",
+                ["VALUE" => 149] // ID из списка свойства со значением -
+            );
+            // или деактивируем торговое предложение
+            /*$el = new CIBlockElement;
+            $arLoadProductArray = Array("ACTIVE" => "N");
+            $res = $el->Update($offer['ID'], $arLoadProductArray);*/
+            pr($offer['CODE'].' => '.$offer['ID']);
+        endforeach;
+    endif;
+endforeach;
