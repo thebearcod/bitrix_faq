@@ -22,7 +22,7 @@ while($arFields = $res->GetNext()) {
 use Bitrix\Iblock\InheritedProperty;
 $file = 'list.csv';
 $csv = array_map('str_getcsv', file($file));
-
+$i=0;
 foreach ($csv as $item) {
     // разберем URL на массив, очистив от лишнего
     $url = explode('/',str_replace('https://','',trim($item[0],'/')));
@@ -34,12 +34,25 @@ foreach ($csv as $item) {
     $arSelect = Array("ID", "IBLOCK_ID", "CODE", "NAME", "PROPERTY_*");
     $res = CIBlockSection::GetList($arSort, $arFilter, $arGroupBy, $arSelect);
     while($arFields = $res->GetNext()) {
-        pr($arFields['ID'].' => '.end($url).' => '.$arFields["NAME"].' => '.$item[1]);
-        $ipropTemplates = new InheritedProperty\SectionTemplates($IBLOCK_ID, $arFields['ID']);
-        //Установить шаблон SEO Title для раздела
-        $ipropTemplates->set(array(
-            "SECTION_META_TITLE" => $item[1],
-        ));
+        $i++;
+        pr($i.' => '.$arFields['ID'].' => '.end($url).' => '.$arFields["NAME"].' => '.$item[1]);
+        $arSEO = [];
+        if(!empty($item[1])) {
+            $arSEO["ELEMENT_META_TITLE"] = $item[1];
+        }
+        if(!empty($item[2])) {
+            $arSEO["ELEMENT_META_DESCRIPTION"] = $item[2];
+        }
+        if(!empty($item[3])) {
+            $arSEO["ELEMENT_PAGE_TITLE"] = $item[3];
+        }
+        pr($arSEO);
+
+        if (!empty($arSEO)) {
+            //ООП  ElementTemplates или SectionTemplates или IblockTemplates ))
+            $ipropTemplates = new InheritedProperty\ElementTemplates($IBLOCK_ID, $arFields['ID']);
+            $ipropTemplates->set($arSEO);
+        }
         /*
          * некоторые названия свойств
          * SECTION_META_TITLE
