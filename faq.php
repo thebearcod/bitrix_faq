@@ -37,6 +37,13 @@
     <? print_r($val); ?> <br>
 <? endforeach; ?>
 
+<?// Проверка на GooglePageSpeed для тупого отключения тяжелых скриптов !ПРИМЕНЯТЬ В КРАЙНИХ СЛУЧАЯХ!
+function isGooglePageSpeed()
+{
+    return preg_match('~Chrome-Lighthouse~i', $_SERVER['HTTP_USER_AGENT']);
+}
+?>
+
 
 <?// ресайз?>
 <? $img = CFile::ResizeImageGet($arItem["PREVIEW_PICTURE"], array("width" => 280, "height" => 190), BX_RESIZE_IMAGE_EXACT, false); ?>
