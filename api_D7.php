@@ -127,3 +127,41 @@ foreach ($elements as $key => $element):
         endforeach;
     endif;
 endforeach;
+
+
+// 4. Задача: простая выборка GetList с выводом DETAIL_PICTURE (пропускаем если не заполнено)
+//            использовалась для поиска водяных знаков на изображениях
+if ($USER->isAdmin()):
+
+    \Bitrix\Main\Loader::includeModule('iblock');
+    $arFilter = array(
+        "IBLOCK_ID" => 2,
+        "SECTION_ID" => Array(99),
+        "INCLUDE_SUBSECTIONS" => "Y",
+        "!DETAIL_PICTURE" => false
+    );
+    $arSelect = array(
+        'NAME',
+        "DETAIL_PAGE_URL",
+        "DETAIL_PICTURE",
+        "PREVIEW_PICTURE",
+    );
+    $pic = false; // меняем на true для просмотра изображений
+    $res = CIBlockElement::GetList(false, $arFilter, false, false, $arSelect);?>
+    <table>
+        <?while($arFields = $res->GetNext()):?>
+
+            <tr>
+                <? if($pic): ?>
+                    <td style="border: 1px solid black;"><img width="250" src="<?=CFile::GetPath($arFields['DETAIL_PICTURE'])?>" alt=""></td>
+                <? endif; ?>
+                <td style="border: 1px solid black;"><?=$arFields['NAME']?></td>
+                <? if(!$pic): ?>
+                    <td style="border: 1px solid black;">https://site.ru<?=$arFields['DETAIL_PAGE_URL']?></td>
+                <? endif; ?>
+            </tr>
+
+            <?//print_r($arFields)?>
+        <?endwhile;?>
+    </table>
+<?endif;?>
