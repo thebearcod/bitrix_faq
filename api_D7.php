@@ -57,10 +57,13 @@ foreach ($csv as $item) {
          * некоторые названия свойств
          * SECTION_META_TITLE
          * SECTION_PAGE_TITLE
+         * SECTION_META_DESCRIPTION
+         * SECTION_META_KEYWORDS
+         *
          * ELEMENT_META_TITLE
          * ELEMENT_PAGE_TITLE
-         * SECTION_META_DESCRIPTION
          * ELEMENT_META_DESCRIPTION
+         * ELEMENT_META_KEYWORDS
          */
     }
 }
