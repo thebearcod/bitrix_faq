@@ -168,3 +168,66 @@ if ($USER->isAdmin()):
         <?endwhile;?>
     </table>
 <?endif;?>
+
+
+<?php
+// 5. Задача: обновить нулевые цены у товаров
+//            нам не понадобится вывод header.php и footer.php,
+//            но без пролога (prolog_before.php) ничего на выйдет
+require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_before.php");
+$GLOBALS['APPLICATION']->RestartBuffer();
+
+global $APPLICATION, $USER;
+
+if ($USER->isAdmin()):
+    \Bitrix\Main\Loader::includeModule('iblock');
+
+    $arFilter = array(
+        "IBLOCK_ID" => 17,
+        "INCLUDE_SUBSECTIONS" => "Y",
+        "PRICE" => 0,
+
+    );
+    $arSelect = array(
+        "ID",
+        "NAME",
+        "IBLOCK_ID",
+        "PROPERTY_*",
+        "PRICE_1",
+    );
+
+    $arNavStartParams = false;
+    //$arNavStartParams = ["nTopCount" => 10];
+
+    $res = \CIBlockElement::GetList(false, $arFilter, false, $arNavStartParams, $arSelect); ?>
+    <table style="border-collapse: collapse;">
+        <?
+        $counter = 0;
+        while ($arFields = $res->GetNext()):
+            $counter++;
+
+            /*$resOffers = CCatalogSKU::getOffersList(
+                $arFields['ID'],	// массив ID товаров
+                17,	// указываете ID инфоблока только в том случае, когда ВЕСЬ массив товаров из одного инфоблока и он известен
+                $skuFilter = array(),	// дополнительный фильтр предложений. по умолчанию пуст.
+                $fields = array(),  // массив полей предложений. даже если пуст - вернет ID и IBLOCK_ID
+                $propertyFilter = array()
+            );
+            pr($resOffers);
+            foreach($resOffers as $key => $arItem){
+                $arFields["OFFERS"] = $arItem;
+            }*/
+            ?>
+            <tr>
+                <td style="border: 1px solid black;"><?= $counter ?></td>
+                <td style="border: 1px solid black;"><?= $arFields['ID'] ?></td>
+                <td style="border: 1px solid black;"><?= $arFields['NAME'] ?></td>
+                <td style="border: 1px solid black;"><?= $arFields['PRICE_1'] ?></td>
+                <? $statusDelete = CPrice::DeleteByProduct( $arFields['ID']);?>
+                <td style="border: 1px solid black;"><?= $statusDelete ? 'удалена' : 'ошибка' ?></td>
+            </tr>
+        <? endwhile; ?>
+    </table>
+
+<?php endif; ?>
+
