@@ -175,9 +175,8 @@ if ($USER->isAdmin()):
 //            нам не понадобится вывод header.php и footer.php,
 //            но без пролога (prolog_before.php) ничего на выйдет
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_before.php");
-$GLOBALS['APPLICATION']->RestartBuffer();
-
 global $APPLICATION, $USER;
+$GLOBALS['APPLICATION']->RestartBuffer();
 
 if ($USER->isAdmin()):
     \Bitrix\Main\Loader::includeModule('iblock');
