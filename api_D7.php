@@ -171,7 +171,7 @@ if ($USER->isAdmin()):
 
 
 <?php
-// 5. Задача: обновить нулевые цены у товаров
+// 5. Задача: удалить нулевые цены у товаров
 //            нам не понадобится вывод header.php и footer.php,
 //            но без пролога (prolog_before.php) ничего на выйдет
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_before.php");
@@ -229,4 +229,93 @@ if ($USER->isAdmin()):
     </table>
 
 <?php endif; ?>
+
+
+<?php
+// 6. Задача: вывести список товаров:
+//              - не снятых с производства
+//              - добавить список данными из связанного HL-блока
+require_once($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_before.php");
+use Bitrix\Highloadblock as HL;
+use Bitrix\Main\Entity;
+
+$GLOBALS['APPLICATION']->RestartBuffer();
+
+// получим массив скидок из HL Discount
+$arDiscounts = [];
+\Bitrix\Main\Loader::includeModule("highloadblock");
+
+$idDiscount = 14; // Discount
+$hlblock = HL\HighloadBlockTable::getById($idDiscount)->fetch();
+
+$entity = HL\HighloadBlockTable::compileEntity($hlblock);
+$entity_data_class = $entity->getDataClass();
+
+$rsData = $entity_data_class::getList(
+    array(
+        "select" => array("*"),
+        "order" => array("ID" => "ASC"),
+        "filter" => array()
+    )
+);
+
+while ($arData = $rsData->Fetch()) {
+    $arDiscounts[$arData['UF_PRODUCT']] = $arData;
+}
+
+\Bitrix\Main\Loader::includeModule('iblock');
+
+$arFilter = array(
+    "IBLOCK_ID" => 91, // Основной каталог товаров
+    "INCLUDE_SUBSECTIONS" => "Y",
+    "!PROPERTY_DISCONTINUED" => "Y" // не снятые с производства
+);
+$arSelect = array(
+    "ID",
+    "NAME",
+    "IBLOCK_ID",
+    "PROPERTY_PRICE_DISCOUNT",
+    "PROPERTY_RECOM_RETAIL_PRICE",
+    "PROPERTY_PRICE_DISCOUNT_CLUB",
+    "PROPERTY_ARTROZ",
+    "PRICE_1",
+);
+
+$arNavStartParams = false;
+//$arNavStartParams = ["nTopCount" => 10];
+
+$res = \CIBlockElement::GetList(false, $arFilter, false, $arNavStartParams, $arSelect); ?>
+<table style="border-collapse: collapse;">
+    <tr>
+        <th style="border: 1px solid black; background-color: gray;">#</th>
+        <th style="border: 1px solid black; background-color: gray;">ID</th>
+        <?/*<th style="border: 1px solid black; background-color: gray;">Name</th>*/?>
+        <th style="border: 1px solid black; background-color: gray;">Артикул розницы</th>
+        <th style="border: 1px solid black; background-color: gray;">Цена торгового каталога РРЦ</th>
+        <th style="border: 1px solid black; background-color: gray;">Промо цена</th>
+        <th style="border: 1px solid black; background-color: gray;">Клубная цена</th>
+        <th style="border: 1px solid black; background-color: gray;">Размер скидки</th>
+        <th style="border: 1px solid black; background-color: gray;">Размер скидки для зарегистрированных</th>
+        <th style="border: 1px solid black; background-color: gray;">Максимальная скидка</th>
+    </tr>
+    <?
+    $counter = 0;
+    while ($arFields = $res->GetNext()):
+        $counter++;
+        ?>
+        <tr>
+            <td style="border: 1px solid black;"><?= $counter ?></td>
+            <td style="border: 1px solid black;"><?= $arFields['ID'] ?></td>
+            <?/*<td style="border: 1px solid black;"><?= $arFields['NAME'] ?></td>*/?>
+            <td style="border: 1px solid black;"><?= $arFields['PROPERTY_ARTROZ_VALUE'] ?></td>
+            <td style="border: 1px solid black;"><?= $arFields['PROPERTY_RECOM_RETAIL_PRICE_VALUE'] ?></td>
+            <td style="border: 1px solid black;"><?= $arFields['PROPERTY_PRICE_DISCOUNT_VALUE'] ?></td>
+            <td style="border: 1px solid black;"><?= $arFields['PROPERTY_PRICE_DISCOUNT_CLUB_VALUE'] ?></td>
+            <td style="border: 1px solid black;"><?= $arDiscounts[$arFields['PROPERTY_ARTROZ_VALUE']]['UF_DISCOUNT'] ?></td>
+            <td style="border: 1px solid black;"><?= $arDiscounts[$arFields['PROPERTY_ARTROZ_VALUE']]['UF_DISCOUNT_REGISTER'] ?></td>
+            <td style="border: 1px solid black;"><?= $arDiscounts[$arFields['PROPERTY_ARTROZ_VALUE']]['UF_MAX_DISCOUNT'] ?></td>
+        </tr>
+    <?
+    endwhile; ?>
+</table>
 
